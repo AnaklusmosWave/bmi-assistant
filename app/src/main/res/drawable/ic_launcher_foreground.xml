@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Modern Sans-serif Text BMI with clean strokes, perfectly spaced -->
+    <!-- Letter B -->
+    <path
+        android:pathData="M 26,38 V 68"
+        android:strokeColor="#977b61"
+        android:strokeWidth="6.0"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M 26,38 H 32 A 7.5,7.5 0 0 1 32,53 H 26"
+        android:strokeColor="#977b61"
+        android:strokeWidth="6.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M 26,53 H 32 A 7.5,7.5 0 0 1 32,68 H 26"
+        android:strokeColor="#977b61"
+        android:strokeWidth="6.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+
+    <!-- Letter M -->
+    <path
+        android:pathData="M 50,68 V 38 L 60,52 L 70,38 V 68"
+        android:strokeColor="#977b61"
+        android:strokeWidth="6.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+
+    <!-- Letter I -->
+    <path
+        android:pathData="M 82,38 V 68"
+        android:strokeColor="#977b61"
+        android:strokeWidth="6.0"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+</vector>

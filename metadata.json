@@ -1,0 +1,6 @@
+{
+  "name": "BMI Assistant",
+  "description": "A beautiful and minimalist Cream-themed BMI & Weight Tracker with automated entry pre-fills, interactive charts (week, month, year views and unit support), goal progress, localized reminders, and AI-powered health analysis using the Gemini API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
