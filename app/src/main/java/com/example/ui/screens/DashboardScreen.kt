@@ -77,21 +77,16 @@ fun DashboardScreen(
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                // Quick Add FAB Accent
-                val isEnglish = profile.language == "en-US"
+                // Quick Add button
                 Button(
                     onClick = { showLogDialog = true },
-                    shape = RoundedCornerShape(if (isEnglish) 12.dp else 14.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White
                     ),
-                    contentPadding = if (isEnglish) {
-                        PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                    } else {
-                        PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                    },
-                    modifier = Modifier.height(if (isEnglish) 32.dp else 38.dp)
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                    modifier = Modifier.height(38.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -99,13 +94,13 @@ fun DashboardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = t("add_record_btn"),
-                            modifier = Modifier.size(if (isEnglish) 14.dp else 16.dp)
+                            contentDescription = t("add_record"),
+                            modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(if (isEnglish) 4.dp else 6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (isEnglish) "Add" else "新增紀錄",
-                            fontSize = if (isEnglish) 11.sp else 12.sp,
+                            text = t("add_record"),
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             softWrap = false

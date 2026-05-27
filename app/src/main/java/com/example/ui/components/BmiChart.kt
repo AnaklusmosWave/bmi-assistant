@@ -29,6 +29,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.Saver
 import com.example.data.database.WeightLog
 import com.example.ui.theme.CreamAccentGold
 import com.example.ui.theme.CreamSecondary
@@ -55,8 +57,9 @@ fun BmiChart(
     modifier: Modifier = Modifier,
     onLogDoubleClicked: ((WeightLog) -> Unit)? = null
 ) {
-    var selectedPeriod by remember { mutableStateOf(ChartPeriod.WEEK) }
-    var viewingDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    var selectedPeriodStr by rememberSaveable { mutableStateOf(ChartPeriod.WEEK.name) }
+    val selectedPeriod = remember(selectedPeriodStr) { ChartPeriod.valueOf(selectedPeriodStr) }
+    var viewingDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
 
     val t = { key: String -> com.example.ui.components.Localization.get(key, language) }
     val isEn = language.startsWith("en", ignoreCase = true)
@@ -136,7 +139,7 @@ fun BmiChart(
     }
 
     // Keep track of point locations to support double-click callback detection
-    val drawnPoints = remember { mutableStateListOf<DrawnPoint>() }
+    val drawnPoints = remember { mutableListOf<DrawnPoint>() }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -167,7 +170,7 @@ fun BmiChart(
                     }
                     val isSelected = selectedPeriod == period
                     Button(
-                        onClick = { selectedPeriod = period },
+                        onClick = { selectedPeriodStr = period.name },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                             contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -352,24 +355,29 @@ fun BmiChart(
                     }
                 }
 
-                val weightsToScale = when (selectedPeriod) {
-                    ChartPeriod.WEEK, ChartPeriod.MONTH -> filteredLogs.map { it.weightKg }
-                    ChartPeriod.YEAR -> weekAveragesList
+                val scale = remember(filteredLogs, selectedPeriod, weekAveragesList, displayTarget) {
+                    val weights = when (selectedPeriod) {
+                        ChartPeriod.WEEK, ChartPeriod.MONTH -> filteredLogs.map { it.weightKg }
+                        ChartPeriod.YEAR -> weekAveragesList
+                    }
+                    val maxW = (weights + displayTarget).maxOrNull() ?: 100.0
+                    val minW = (weights + displayTarget).minOrNull() ?: 50.0
+
+                    val rangeBuffer = if (maxW == minW) 10.0 else (maxW - minW) * 0.15
+                    val minYVal = maxOf(0.0, minW - rangeBuffer)
+                    val maxYVal = maxW + rangeBuffer
+                    val range = if (maxYVal == minYVal) 1.0 else (maxYVal - minYVal)
+                    Triple(minYVal, maxYVal, range)
                 }
-
-                val maxW = (weightsToScale + displayTarget).maxOrNull() ?: 100.0
-                val minW = (weightsToScale + displayTarget).minOrNull() ?: 50.0
-
-                val rangeBuffer = if (maxW == minW) 10.0 else (maxW - minW) * 0.15
-                val minY = maxOf(0.0, minW - rangeBuffer)
-                val maxY = maxW + rangeBuffer
-                val valueRange = if (maxY == minY) 1.0 else (maxY - minY)
+                val minY = scale.first
+                val maxY = scale.second
+                val valueRange = scale.third
 
                 // Define gesture modifier
                 val hitModifier = if (selectedPeriod == ChartPeriod.YEAR || onLogDoubleClicked == null) {
                     Modifier
                 } else {
-                    Modifier.pointerInput(drawnPoints.toList()) {
+                    Modifier.pointerInput(selectedPeriod, logs) {
                         detectTapGestures(
                             onDoubleTap = { pressOffset ->
                                 val thresholdPx = with(density) { 28.dp.toPx() }

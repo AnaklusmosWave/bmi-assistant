@@ -35,5 +35,6 @@ data class UserProfile(
     val isOnboarded: Boolean = false,
     val isDeveloperMode: Boolean = false,
     val weekStartDay: Int = 2, // 1 = Sunday, 2 = Monday
-    val dateFormatPattern: String = "DEFAULT" // "DEFAULT", "yyyy/MM/dd", "MM/dd/yyyy", "dd/MM/yyyy"
+    val dateFormatPattern: String = "DEFAULT", // "DEFAULT", "yyyy/MM/dd", "MM/dd/yyyy", "dd/MM/yyyy"
+    val itemsPerPage: Int = 10
 )

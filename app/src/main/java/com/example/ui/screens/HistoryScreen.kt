@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
@@ -53,6 +54,32 @@ fun HistoryScreen(
     val isMetric = profile.isMetricUnit
     val t = { key: String -> com.example.ui.components.Localization.get(key, profile.language) }
 
+    val itemsPerPage = profile.itemsPerPage
+    var currentPage by rememberSaveable { mutableStateOf(0) }
+
+    val totalLogsCount = logs.size
+    val totalPages = if (totalLogsCount == 0) 1 else kotlin.math.ceil(totalLogsCount.toDouble() / itemsPerPage).toInt()
+
+    // Keep currentPage within valid bounds (e.g. if logs deleted)
+    val adjustedCurrentPage = when {
+        currentPage >= totalPages -> (totalPages - 1).coerceAtLeast(0)
+        currentPage < 0 -> 0
+        else -> currentPage
+    }
+    LaunchedEffect(adjustedCurrentPage) {
+        if (currentPage != adjustedCurrentPage) {
+            currentPage = adjustedCurrentPage
+        }
+    }
+
+    val startIndex = adjustedCurrentPage * itemsPerPage
+    val endIndex = kotlin.math.min(startIndex + itemsPerPage, totalLogsCount)
+    val paginatedLogs = if (totalLogsCount > 0 && startIndex < totalLogsCount) {
+        logs.subList(startIndex, endIndex)
+    } else {
+        emptyList()
+    }
+
     var showDeleteConfirmationLog by remember { mutableStateOf<WeightLog?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
     var showOverwriteWarningByLog by remember { mutableStateOf<WeightLog?>(null) }
@@ -83,7 +110,7 @@ fun HistoryScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = t("trending_and_stats"),
                         fontSize = 14.sp,
@@ -115,7 +142,13 @@ fun HistoryScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(t("export_report"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = t("export_report"), 
+                                fontSize = 12.sp, 
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
                         }
                     }
                 }
@@ -213,7 +246,7 @@ fun HistoryScreen(
                 }
             }
         } else {
-            items(logs) { log ->
+            items(paginatedLogs, key = { it.id }) { log ->
                 val displayWeight = if (isMetric) log.weightKg else log.weightKg * 2.20462
                 val weightUnit = if (isMetric) "kg" else "lb"
 
@@ -314,6 +347,73 @@ fun HistoryScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        if (logs.isNotEmpty() && totalPages > 1) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Previous Button
+                    Button(
+                        onClick = { if (currentPage > 0) currentPage-- },
+                        enabled = currentPage > 0,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                        modifier = Modifier.height(38.dp)
+                    ) {
+                        Text(
+                            text = if (profile.language == "en-US") "Prev" else "上一頁",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // Page Indicator String
+                    val pageStr = if (profile.language == "en-US") {
+                        "Page ${currentPage + 1} of $totalPages"
+                    } else {
+                        "第 ${currentPage + 1} / $totalPages 頁"
+                    }
+                    Text(
+                        text = pageStr,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+
+                    // Next Button
+                    Button(
+                        onClick = { if (currentPage < totalPages - 1) currentPage++ },
+                        enabled = currentPage < totalPages - 1,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                        modifier = Modifier.height(38.dp)
+                    ) {
+                        Text(
+                            text = if (profile.language == "en-US") "Next" else "下一頁",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

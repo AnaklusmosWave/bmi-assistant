@@ -109,7 +109,8 @@ class WeightViewModel(application: Application) : AndroidViewModel(application) 
         isOnboarded: Boolean,
         isDeveloperMode: Boolean = false,
         weekStartDay: Int = 2,
-        dateFormatPattern: String = "DEFAULT"
+        dateFormatPattern: String = "DEFAULT",
+        itemsPerPage: Int = 10
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val profile = UserProfile(
@@ -127,7 +128,8 @@ class WeightViewModel(application: Application) : AndroidViewModel(application) 
                 isOnboarded = isOnboarded,
                 isDeveloperMode = isDeveloperMode,
                 weekStartDay = weekStartDay,
-                dateFormatPattern = dateFormatPattern
+                dateFormatPattern = dateFormatPattern,
+                itemsPerPage = itemsPerPage
             )
             repository.saveUserProfile(profile)
  

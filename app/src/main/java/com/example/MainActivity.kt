@@ -61,6 +61,8 @@ fun BmiAppMainContainer() {
 
     var activeTab by remember { mutableStateOf(MainTab.DASHBOARD) }
     var isDevModeUnlockedThisSession by remember { mutableStateOf(false) }
+    var settingsClickCount by remember { mutableStateOf(0) }
+    var lastSettingsClickTime by remember { mutableStateOf(0L) }
     val coroutineScope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -134,33 +136,30 @@ fun BmiAppMainContainer() {
 
                     NavigationBarItem(
                         selected = activeTab == MainTab.SETTINGS,
-                        onClick = { activeTab = MainTab.SETTINGS },
+                        onClick = { 
+                            activeTab = MainTab.SETTINGS
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - lastSettingsClickTime > 2000L) {
+                                settingsClickCount = 1
+                            } else {
+                                settingsClickCount++
+                            }
+                            lastSettingsClickTime = currentTime
+
+                            if (settingsClickCount >= 5) {
+                                isDevModeUnlockedThisSession = true
+                                val activatedMsg = if (profile.language == "en-US") "🧪 Developer mode unlocked!" else "🧪 開發者模式已顯示！"
+                                android.widget.Toast.makeText(context, activatedMsg, android.widget.Toast.LENGTH_SHORT).show()
+                                settingsClickCount = 0
+                            }
+                        },
                         label = { Text(com.example.ui.components.Localization.get("settings", profile.language), fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                         icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = com.example.ui.components.Localization.get("settings", profile.language)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
                             indicatorColor = MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier.pointerInput(profile.language) {
-                            detectTapGestures(
-                                onTap = { activeTab = MainTab.SETTINGS },
-                                onPress = { offset ->
-                                    val job = coroutineScope.launch {
-                                        delay(3000)
-                                        isDevModeUnlockedThisSession = true
-                                        val activatedMsg = if (profile.language == "en-US") "🧪 Developer mode unlocked!" else "🧪 開發者模式已顯示！"
-                                        android.widget.Toast.makeText(context, activatedMsg, android.widget.Toast.LENGTH_SHORT).show()
-                                        activeTab = MainTab.SETTINGS
-                                    }
-                                    try {
-                                        awaitRelease()
-                                    } finally {
-                                        job.cancel()
-                                    }
-                                }
-                            )
-                        }
+                        )
                     )
                 }
             },

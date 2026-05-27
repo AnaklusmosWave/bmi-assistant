@@ -45,6 +45,7 @@ fun SettingsScreen(
     var dateFormatPattern by remember(profile) { 
         mutableStateOf(if (profile.dateFormatPattern == "DEFAULT") "yyyy/MM/dd" else profile.dateFormatPattern) 
     }
+    var itemsPerPage by remember(profile) { mutableStateOf(profile.itemsPerPage) }
     
     // Localization helper
     val t = { key: String -> Localization.get(key, selectedLanguage) }
@@ -123,7 +124,7 @@ fun SettingsScreen(
     val hasChanges = remember(
         selectedLanguage, isMetric, ageInput, selectedGender,
         reminderEnabled, reminderHour, reminderMinute, currentReminderFrequency,
-        heightInput, targetWeightInput, isDeveloperMode, weekStartDay, dateFormatPattern, profile
+        heightInput, targetWeightInput, isDeveloperMode, weekStartDay, dateFormatPattern, itemsPerPage, profile
     ) {
         val originalH = if (profile.isMetricUnit) profile.heightCm else profile.heightCm / 2.54
         val originalW = if (profile.isMetricUnit) profile.targetWeightKg else profile.targetWeightKg * 2.20462
@@ -145,6 +146,7 @@ fun SettingsScreen(
         isDeveloperMode != profile.isDeveloperMode ||
         weekStartDay != profile.weekStartDay ||
         dateFormatPattern != profile.dateFormatPattern ||
+        itemsPerPage != profile.itemsPerPage ||
         hChanged || wChanged
     }
 
@@ -180,7 +182,8 @@ fun SettingsScreen(
                 isOnboarded = profile.isOnboarded,
                 isDeveloperMode = isDeveloperMode,
                 weekStartDay = weekStartDay,
-                dateFormatPattern = dateFormatPattern
+                dateFormatPattern = dateFormatPattern,
+                itemsPerPage = itemsPerPage
             )
 
             userMadeChanges = false
@@ -631,6 +634,50 @@ fun SettingsScreen(
                             }
                         }
                     }
+
+                    // Items per page selector (歷史紀錄每頁筆數)
+                    Column {
+                        Text(
+                            text = if (selectedLanguage == "en-US") "History Logs Per Page" else "歷史紀錄每頁顯示筆數",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(4.dp)
+                        ) {
+                            listOf(5, 10, 15, 20).forEach { countOpt ->
+                                val label = if (selectedLanguage == "en-US") "$countOpt logs" else "${countOpt} 筆"
+                                val isSelected = itemsPerPage == countOpt
+                                Button(
+                                    onClick = { itemsPerPage = countOpt; userMadeChanges = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(38.dp),
+                                    contentPadding = PaddingValues(horizontal = 2.dp)
+                                ) {
+                                    Text(
+                                        text = label, 
+                                        fontSize = 11.sp, 
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -801,6 +848,7 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clickable {
+                                            userMadeChanges = true
                                             if (isDaySelected) {
                                                 if (selectedDays.size > 1) {
                                                     selectedDays.remove(day)
@@ -823,6 +871,7 @@ fun SettingsScreen(
                                     Checkbox(
                                         checked = isDaySelected,
                                         onCheckedChange = { checked ->
+                                            userMadeChanges = true
                                             if (checked) {
                                                 selectedDays.add(day)
                                             } else {
@@ -1066,7 +1115,7 @@ fun SettingsScreen(
 
     // Animated Vertical Save Button centered vertically on the extreme right
     androidx.compose.animation.AnimatedVisibility(
-        visible = hasChanges,
+        visible = hasChanges && userMadeChanges,
         enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
         exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
         modifier = Modifier
