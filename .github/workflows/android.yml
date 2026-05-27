@@ -1,11 +1,9 @@
-# .github/workflows/android-build.yml
-name: Android CI Build
+name: Android Build
 
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
   workflow_dispatch:
 
@@ -14,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -24,18 +22,14 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-      - name: Build Debug APK
+      - name: Build APK
         run: ./gradlew assembleDebug
 
-      # Optional: build release instead
-      # run: ./gradlew assembleRelease
-
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
+          name: app-debug
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
